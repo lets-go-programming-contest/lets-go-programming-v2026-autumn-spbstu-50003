@@ -3,8 +3,10 @@ package main
 import "fmt"
 
 func main() {
-	var left, right, result float64
-	var op string
+	var (
+		left, right, result float64
+		op                  string
+	)
 
 	if _, err := fmt.Scan(&left); err != nil {
 		fmt.Println("Invalid first operand")

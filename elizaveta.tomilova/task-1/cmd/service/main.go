@@ -3,34 +3,36 @@ package main
 import "fmt"
 
 func main() {
-	var oper1 int
-	var oper2 int
-	var symb string
-	_, err1 := fmt.Scanln(&oper1)
-	if err1 != nil {
+	var (
+		a int
+		b int
+		symb string
+	)
+	_, errA := fmt.Scanln(&a)
+	if errA != nil {
 		fmt.Println("Invalid first operand")
 		return
 	}
-	_, err2 := fmt.Scanln(&oper2)
-	if err2 != nil {
+	_, errB := fmt.Scanln(&b)
+	if errB != nil {
 		fmt.Println("Invalid second operand")
 		return
 	}
-	_, err3 := fmt.Scanln(&symb)
-	if err3 != nil {
+	_, errSymb := fmt.Scanln(&symb)
+	if errSymb != nil {
 		fmt.Println("Invalid operation")
 		return
 	}
 	switch symb {
 	case "+":
-		fmt.Println(oper1 + oper2)
+		fmt.Println(a + b)
 	case "-":
-		fmt.Println(oper1 - oper2)
+		fmt.Println(a - b)
 	case "*":
-		fmt.Println(oper1 * oper2)
+		fmt.Println(a * b)
 	case "/":
-		if oper2 != 0 {
-			fmt.Println(oper1 / oper2)
+		if b != 0 {
+			fmt.Println(a / b)
 		} else {
 			fmt.Println("Division by zero")
 			return

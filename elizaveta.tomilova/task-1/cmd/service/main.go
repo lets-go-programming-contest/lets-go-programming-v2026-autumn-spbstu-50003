@@ -4,8 +4,8 @@ import "fmt"
 
 func main() {
 	var (
-		a int
-		b int
+		a    int
+		b    int
 		symb string
 	)
 	_, errA := fmt.Scanln(&a)

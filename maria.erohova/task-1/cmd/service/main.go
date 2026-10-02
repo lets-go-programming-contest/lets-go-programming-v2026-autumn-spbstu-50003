@@ -6,37 +6,37 @@ import (
 
 func main() {
 	var (
-		o1, o2    int
-		operation string
+		first, second int
+		operation     string
 	)
-	_, errO1 := fmt.Scanln(&o1)
-	if errO1 != nil {
+	_, err := fmt.Scanln(&first)
+	if err != nil {
 		fmt.Println("Invalid first operand")
 		return
 	}
 
-	_, errO2 := fmt.Scanln(&o2)
-	if errO2 != nil {
+	_, err = fmt.Scanln(&second)
+	if err != nil {
 		fmt.Println("Invalid second operand")
 		return
 	}
 
-	_, errOP := fmt.Scanln(&operation)
-	if errOP != nil {
+	_, err = fmt.Scanln(&operation)
+	if err != nil {
 		fmt.Println("Invalid operation")
 		return
 	}
 
 	switch operation {
 	case "+":
-		fmt.Println(o1 + o2)
+		fmt.Println(first + second)
 	case "-":
-		fmt.Println(o1 - o2)
+		fmt.Println(first - second)
 	case "*":
-		fmt.Println(o1 * o2)
+		fmt.Println(first * second)
 	case "/":
-		if o2 != 0 {
-			fmt.Println(o1 / o2)
+		if second != 0 {
+			fmt.Println(first / second)
 		} else {
 			fmt.Println("Division by zero")
 			return

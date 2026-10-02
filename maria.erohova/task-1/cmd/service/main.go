@@ -6,7 +6,7 @@ import (
 
 func main() {
 	var (
-		o1, o2 int
+		o1, o2    int
 		operation string
 	)
 	_, errO1 := fmt.Scanln(&o1)

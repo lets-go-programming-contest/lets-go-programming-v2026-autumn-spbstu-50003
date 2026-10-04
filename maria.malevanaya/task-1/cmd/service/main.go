@@ -4,16 +4,16 @@ import "fmt"
 
 func main() {
 	var (
-		a, b int
-		op   string
+		first, second int
+		op            string
 	)
 
-	if _, err := fmt.Scan(&a); err != nil {
+	if _, err := fmt.Scan(&first); err != nil {
 		fmt.Println("Invalid first operand")
 		return
 	}
 
-	if _, err := fmt.Scan(&b); err != nil {
+	if _, err := fmt.Scan(&second); err != nil {
 		fmt.Println("Invalid second operand")
 		return
 	}
@@ -25,17 +25,17 @@ func main() {
 
 	switch op {
 	case "+":
-		fmt.Println(a + b)
+		fmt.Println(first + second)
 	case "-":
-		fmt.Println(a - b)
+		fmt.Println(first - second)
 	case "*":
-		fmt.Println(a * b)
+		fmt.Println(first * second)
 	case "/":
-		if b == 0 {
+		if second == 0 {
 			fmt.Println("Division by zero")
 			return
 		}
-		fmt.Println(a / b)
+		fmt.Println(first / second)
 	default:
 		fmt.Println("Invalid operation")
 	}

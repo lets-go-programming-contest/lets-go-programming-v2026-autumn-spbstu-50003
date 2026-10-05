@@ -19,9 +19,11 @@ func main() {
 
 	for range sites {
 		rng = Range{15, 30}
+
 		if _, err := fmt.Scan(&siteEmployees); err != nil {
 			return
 		}
+
 		for range siteEmployees {
 			if _, err := fmt.Scan(&mod, &temp); err != nil {
 				return

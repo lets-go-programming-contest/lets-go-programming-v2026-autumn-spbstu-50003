@@ -17,12 +17,12 @@ func main() {
 		return
 	}
 
-	for i := 0; i < sites; i++ {
+	for range sites {
 		rng = Range{15, 30}
 		if _, err := fmt.Scan(&siteEmployees); err != nil {
 			return
 		}
-		for k := 0; k < siteEmployees; k++ {
+		for range siteEmployees {
 			if _, err := fmt.Scan(&mod, &temp); err != nil {
 				return
 			}

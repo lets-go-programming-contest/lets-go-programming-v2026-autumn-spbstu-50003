@@ -2,6 +2,11 @@ package main
 
 import "fmt"
 
+const (
+	defaultMaxTemperature = 30
+	defaultMinTemperature = 15
+)
+
 type Conditioner struct {
 	maxTemperature int
 	minTemperature int
@@ -9,8 +14,8 @@ type Conditioner struct {
 
 func NewConditioner() Conditioner {
 	return Conditioner{
-		maxTemperature: 30,
-		minTemperature: 15,
+		maxTemperature: defaultMaxTemperature,
+		minTemperature: defaultMinTemperature,
 	}
 }
 
@@ -30,6 +35,7 @@ func (c *Conditioner) SetTemperature(operation string, value int) int {
 	if c.minTemperature <= c.maxTemperature {
 		return c.minTemperature
 	}
+
 	return -1
 }
 
@@ -39,7 +45,7 @@ func main() {
 		return
 	}
 
-	for i := 0; i < departmentCount; i++ {
+	for range departmentCount {
 		var staffCount int
 		if _, err := fmt.Scan(&staffCount); err != nil {
 			return
@@ -47,14 +53,16 @@ func main() {
 
 		conditioner := NewConditioner()
 
-		for j := 0; j < staffCount; j++ {
+		for range staffCount {
 			var (
 				operation string
 				value     int
 			)
+
 			if _, err := fmt.Scan(&operation, &value); err != nil {
 				return
 			}
+
 			fmt.Println(conditioner.SetTemperature(operation, value))
 		}
 	}

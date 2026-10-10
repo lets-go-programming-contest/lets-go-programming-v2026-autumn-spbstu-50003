@@ -32,6 +32,7 @@ func (c *Conditioner) SetTemperature(operation string, value int) int {
 			}
 		}
 	}
+
 	if c.minTemperature <= c.maxTemperature {
 		return c.minTemperature
 	}

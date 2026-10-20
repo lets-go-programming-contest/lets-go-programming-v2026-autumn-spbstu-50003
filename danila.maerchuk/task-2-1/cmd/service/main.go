@@ -4,53 +4,58 @@ import (
 	"fmt"
 )
 
+func processEmployees(employeesCount int) {
+	minTemp := 15
+	maxTemp := 30
+
+	for range employeesCount {
+		var (
+			operation string
+			val       int
+		)
+
+		if _, err := fmt.Scan(&operation, &val); err != nil {
+			break
+		}
+
+		if operation == ">=" {
+			if val > minTemp {
+				minTemp = val
+			}
+		} else if operation == "<=" {
+			if val < maxTemp {
+				maxTemp = val
+			}
+		}
+
+		if minTemp <= maxTemp {
+			fmt.Println(minTemp)
+		} else {
+			fmt.Println(-1)
+		}
+	}
+}
+
 func main() {
-	var n int
-	if _, err := fmt.Scan(&n); err != nil {
+	var departmentNumber int
+	if _, err := fmt.Scan(&departmentNumber); err != nil {
 		return
 	}
 
-	if n < 1 || n > 1000 {
+	if departmentNumber < 1 || departmentNumber > 1000 {
 		return
 	}
 
-	for dept := 0; dept < n; dept++ {
-		var k int
-		if _, err := fmt.Scan(&k); err != nil {
+	for range departmentNumber {
+		var employeesCount int
+		if _, err := fmt.Scan(&employeesCount); err != nil {
 			break
 		}
 
-		if k < 1 || k > 1000 {
+		if employeesCount < 1 || employeesCount > 1000 {
 			break
 		}
 
-		minTemp := 15
-		maxTemp := 30
-
-		for emp := 0; emp < k; emp++ {
-			var (
-				op  string
-				val int
-			)
-			if _, err := fmt.Scan(&op, &val); err != nil {
-				break
-			}
-
-			if op == ">=" {
-				if val > minTemp {
-					minTemp = val
-				}
-			} else if op == "<=" {
-				if val < maxTemp {
-					maxTemp = val
-				}
-			}
-
-			if minTemp <= maxTemp {
-				fmt.Println(minTemp)
-			} else {
-				fmt.Println(-1)
-			}
-		}
+		processEmployees(employeesCount)
 	}
 }

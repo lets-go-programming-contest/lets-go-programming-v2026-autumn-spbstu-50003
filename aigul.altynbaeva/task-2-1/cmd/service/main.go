@@ -1,8 +1,6 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
 const (
 	MinAllowedTemp = 15
@@ -16,15 +14,19 @@ type TempRange struct {
 
 func main() {
 	var departments int
+
 	if _, err := fmt.Scan(&departments); err != nil {
-		fmt.Printf("Error reading departments: %v\n", err)
+		fmt.Println("Error reading departments:", err)
+
 		return
 	}
 
-	for i := 0; i < departments; i++ {
+	for range departments {
 		var employees int
+
 		if _, err := fmt.Scan(&employees); err != nil {
 			fmt.Println("Error reading employees")
+
 			return
 		}
 
@@ -33,25 +35,29 @@ func main() {
 			Max: MaxAllowedTemp,
 		}
 
-		for j := 0; j < employees; j++ {
+		for range employees {
 			var operator string
 			var temp int
-			if _, err := fmt.Scan(&operator, &temp); err != nil {
+
+			_, err := fmt.Scan(&operator, &temp)
+			if err != nil {
 				fmt.Println("Error reading constraint")
 
 				return
 			}
 
-			if operator == ">=" {
+			switch operator {
+			case ">=":
 				if temp > currentRange.Min {
 					currentRange.Min = temp
 				}
-			} else if operator == "<=" {
+			case "<=":
 				if temp < currentRange.Max {
 					currentRange.Max = temp
 				}
-			} else {
+			default:
 				fmt.Println("Invalid operator")
+
 				return
 			}
 

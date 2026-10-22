@@ -35,19 +35,21 @@ func main() {
 	var departments int
 	if _, err := fmt.Scan(&departments); err != nil {
 		fmt.Println(err)
+
 		return
 	}
 
-	var employees int
-	if _, err := fmt.Scan(&employees); err != nil {
-		fmt.Println(err)
-		return
-	}
+	for range departments {
+		var employees int
+		if _, err := fmt.Scan(&employees); err != nil {
+			fmt.Println(err)
 
-	for i := 0; i < departments; i++ {
+			return
+		}
+
 		rng := temperatureRange{min: minLimit, max: maxLimit}
 
-		for j := 0; j < employees; j++ {
+		for range employees {
 			var (
 				mod  string
 				temp int
@@ -55,6 +57,7 @@ func main() {
 
 			if _, err := fmt.Scan(&mod, &temp); err != nil {
 				fmt.Println(err)
+
 				return
 			}
 

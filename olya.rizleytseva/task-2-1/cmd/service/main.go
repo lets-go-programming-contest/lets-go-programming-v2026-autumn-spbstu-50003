@@ -36,20 +36,22 @@ func main() {
 
 	if _, err := fmt.Scan(&numDepts); err != nil {
 		fmt.Println("invalid number of departments", err)
+
 		return
 	}
 
-	for i := 0; i < numDepts; i++ {
+	for range numDepts {
 		var numEmps int
 
 		if _, err := fmt.Scan(&numEmps); err != nil {
 			fmt.Println("invalid number of employees", err)
+
 			return
 		}
 
 		temps := tempRange{low: minTemp, high: maxTemp}
 
-		for j := 0; j < numEmps; j++ {
+		for range numEmps {
 			var (
 				condition string
 				limit     int
@@ -57,6 +59,7 @@ func main() {
 
 			if _, err := fmt.Scan(&condition, &limit); err != nil {
 				fmt.Println("invalid condition", err)
+
 				return
 			}
 

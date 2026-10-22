@@ -2,27 +2,63 @@ package main
 
 import (
 	"fmt"
-	"sort"
 )
 
-func main() {
-	var n int
-	for fmt.Scan(&n) == 1 {
-		a := make([]int, n)
-		for i := range n {
-			_, _ = fmt.Scan(&a[i])
-		}
-		sort.Sort(sort.Reverse(sort.IntSlice(a)))
+const (
+	MinAllowedTemp = 15
+	MaxAllowedTemp = 30
+)
 
-		var m int
-		_, _ = fmt.Scan(&m)
-		for range m {
-			var k int
-			_, _ = fmt.Scan(&k)
-			if k < 1 || k > n {
+type TempRange struct {
+	Min int
+	Max int
+}
+
+func main() {
+	var departments int
+	if _, err := fmt.Scan(&departments); err != nil {
+		fmt.Printf("Error reading departments: %v\n", err)
+		return
+	}
+
+	for i := 0; i < departments; i++ {
+		var employees int
+		if _, err := fmt.Scan(&employees); err != nil {
+			fmt.Println("Error reading employees")
+			return
+		}
+
+		currentRange := TempRange{
+			Min: MinAllowedTemp,
+			Max: MaxAllowedTemp,
+		}
+
+		for j := 0; j < employees; j++ {
+			var operator string
+			var temp int
+			if _, err := fmt.Scan(&operator, &temp); err != nil {
+				fmt.Println("Error reading constraint")
+
+				return
+			}
+
+			if operator == ">=" {
+				if temp > currentRange.Min {
+					currentRange.Min = temp
+				}
+			} else if operator == "<=" {
+				if temp < currentRange.Max {
+					currentRange.Max = temp
+				}
+			} else {
+				fmt.Println("Invalid operator")
+				return
+			}
+
+			if currentRange.Min > currentRange.Max {
 				fmt.Println(-1)
 			} else {
-				fmt.Println(a[k-1])
+				fmt.Println(currentRange.Min)
 			}
 		}
 	}

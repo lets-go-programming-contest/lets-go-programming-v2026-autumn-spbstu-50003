@@ -1,3 +1,3 @@
-module artem.volkov/task-2-1
+module github.com/Wolfmano/task-2-1
 
 go 1.22.7

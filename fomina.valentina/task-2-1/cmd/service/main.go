@@ -13,7 +13,7 @@ func (h *MyMaxHeap) Len() int {
 }
 
 func (h *MyMaxHeap) Less(i int, j int) bool {
-	return (*h)[i] > (*h)[j]
+	return (*h)[i] < (*h)[j]
 }
 
 func (h *MyMaxHeap) Swap(i int, j int) {
@@ -80,4 +80,3 @@ func main() {
 
 	fmt.Println(heap.Pop(heapOfDishes))
 }
-

@@ -80,3 +80,4 @@ func main() {
 
 	fmt.Println(heap.Pop(heapOfDishes))
 }
+

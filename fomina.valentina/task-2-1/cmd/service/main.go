@@ -3,65 +3,65 @@ package main
 import "fmt"
 
 const (
-	lowTemp  = 15
-	highTemp = 30
+	LowestTemp  = 15
+	HighestTemp = 30
 )
 
-type temperatureLimits struct {
-	minBound int
-	maxBound int
-}
-
-func (t *temperatureLimits) updateRange(sign string, tempValue int) int {
-	switch sign {
-	case ">=":
-		if tempValue > t.minBound {
-			t.minBound = tempValue
-		}
-	case "<=":
-		if tempValue < t.maxBound {
-			t.maxBound = tempValue
-		}
-	}
-
-	if t.minBound <= t.maxBound {
-		return t.minBound
-	}
-
-	return -1
+type Border struct {
+	Min int
+	Max int
 }
 
 func main() {
-	var deptCount int
-	if _, err := fmt.Scan(&deptCount); err != nil {
-		fmt.Println(err)
+	var blocks int
 
+	if _, err := fmt.Scan(&blocks); err != nil {
+		fmt.Println("failed to read blocks:", err)
 		return
 	}
 
-	for i := 0; i < deptCount; i++ {
+	for i := 0; i < blocks; i++ {
 		var staffCount int
-		if _, err := fmt.Scan(&staffCount); err != nil {
-			fmt.Println(err)
 
+		if _, err := fmt.Scan(&staffCount); err != nil {
+			fmt.Println("failed to read staff count")
 			return
 		}
 
-		limits := temperatureLimits{minBound: lowTemp, maxBound: highTemp}
+		bounds := Border{
+			Min: LowestTemp,
+			Max: HighestTemp,
+		}
 
-		for j := 0; j < staffCount; j++ {
+		for range staffCount {
 			var (
-				condition string
-				temp      int
+				sign string
+				val  int
 			)
 
-			if _, err := fmt.Scan(&condition, &temp); err != nil {
-				fmt.Println(err)
-
+			if _, err := fmt.Scan(&sign, &val); err != nil {
+				fmt.Println("failed to read condition")
 				return
 			}
 
-			fmt.Println(limits.updateRange(condition, temp))
+			if sign == ">=" {
+				if val > bounds.Min {
+					bounds.Min = val
+				}
+			} else if sign == "<=" {
+				if val < bounds.Max {
+					bounds.Max = val
+				}
+			} else {
+				fmt.Println("unknown operator")
+				return
+			}
+
+			if bounds.Min > bounds.Max {
+				fmt.Println(-1)
+			} else {
+				fmt.Println(bounds.Min)
+			}
 		}
 	}
 }

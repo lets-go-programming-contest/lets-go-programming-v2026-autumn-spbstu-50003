@@ -39,13 +39,16 @@ func main() {
 
 	if _, err := fmt.Scan(&deptCount); err != nil {
 		fmt.Println("Failed to read number of departments:", err)
+
 		return
 	}
+
 	for range deptCount {
 		var staffCount int
 
 		if _, err := fmt.Scan(&staffCount); err != nil {
 			fmt.Println("Failed to read number of employees:", err)
+
 			return
 		}
 
@@ -59,6 +62,7 @@ func main() {
 
 			if _, err := fmt.Scan(&sign, &value); err != nil {
 				fmt.Println("Failed to read condition:", err)
+
 				return
 			}
 

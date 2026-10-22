@@ -15,6 +15,20 @@ type Range struct {
 	Max int
 }
 
+func (r *Range) Apply(mod string, temp int) int {
+	if mod == opLessOrEqual && temp < r.Max {
+		r.Max = temp
+	} else if mod == opGreaterOrEqual && temp > r.Min {
+		r.Min = temp
+	}
+
+	if r.Min <= r.Max {
+		return r.Min
+	}
+
+	return -1
+}
+
 func main() {
 	var sites int
 
@@ -41,21 +55,7 @@ func main() {
 				return
 			}
 
-			if mod == "<=" {
-				if temp < rng.Max {
-					rng.Max = temp
-				}
-			} else if mod == ">=" {
-				if temp > rng.Min {
-					rng.Min = temp
-				}
-			}
-
-			if rng.Min <= rng.Max {
-				fmt.Printf("%d\n", rng.Min)
-			} else {
-				fmt.Printf("-1\n")
-			}
+			fmt.Println(rng.Apply(mod, temp))
 		}
 	}
 }

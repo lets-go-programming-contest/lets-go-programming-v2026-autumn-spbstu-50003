@@ -2,29 +2,41 @@ package main
 
 import "fmt"
 
-type Range struct{ Min, Max int }
+const (
+	minTemp = 15
+	maxTemp = 30
+
+	opLessOrEqual    = "<="
+	opGreaterOrEqual = ">="
+)
+
+type Range struct {
+	Min int
+	Max int
+}
 
 func main() {
-	var (
-		sites         int
-		siteEmployees int
-		mod           string
-		temp          int
-		rng           Range
-	)
+	var sites int
 
 	if _, err := fmt.Scan(&sites); err != nil {
 		return
 	}
 
 	for range sites {
-		rng = Range{15, 30}
+		rng := Range{Min: minTemp, Max: maxTemp}
+
+		var siteEmployees int
 
 		if _, err := fmt.Scan(&siteEmployees); err != nil {
 			return
 		}
 
 		for range siteEmployees {
+			var (
+				mod  string
+				temp int
+			)
+
 			if _, err := fmt.Scan(&mod, &temp); err != nil {
 				return
 			}

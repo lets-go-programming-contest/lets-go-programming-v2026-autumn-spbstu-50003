@@ -43,12 +43,14 @@ func (c *Conditioner) SetTemperature(operation string, value int) int {
 func main() {
 	var departmentCount int
 	if _, err := fmt.Scan(&departmentCount); err != nil {
+		fmt.Println(err)
 		return
 	}
 
 	for range departmentCount {
 		var staffCount int
 		if _, err := fmt.Scan(&staffCount); err != nil {
+			fmt.Println(err)
 			return
 		}
 
@@ -61,6 +63,7 @@ func main() {
 			)
 
 			if _, err := fmt.Scan(&operation, &value); err != nil {
+				fmt.Println(err)
 				return
 			}
 

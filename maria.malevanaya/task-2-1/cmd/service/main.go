@@ -31,9 +31,9 @@ func (r *temperatureRange) apply(mod string, temp int) int {
 	return -1
 }
 
-func main() { 
-	var departments int 
-	if _, err := fmt.Scan(&departments); err != nil { 
+func main() {
+	var departments int
+	if _, err := fmt.Scan(&departments); err != nil {
 		fmt.Println(fmt.Errorf("failed to read departments count: %w", err))
 
 		return

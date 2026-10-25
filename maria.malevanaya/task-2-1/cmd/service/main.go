@@ -31,10 +31,10 @@ func (r *temperatureRange) apply(mod string, temp int) int {
 	return -1
 }
 
-func main() {
-	var departments int
-	if _, err := fmt.Scan(&departments); err != nil {
-		fmt.Println(err)
+func main() { 
+	var departments int 
+	if _, err := fmt.Scan(&departments); err != nil { 
+		fmt.Println(fmt.Errorf("failed to read departments count: %w", err))
 
 		return
 	}
@@ -42,7 +42,7 @@ func main() {
 	for range departments {
 		var employees int
 		if _, err := fmt.Scan(&employees); err != nil {
-			fmt.Println(err)
+			fmt.Println(fmt.Errorf("failed to read employees count: %w", err))
 
 			return
 		}
@@ -56,7 +56,7 @@ func main() {
 			)
 
 			if _, err := fmt.Scan(&mod, &temp); err != nil {
-				fmt.Println(err)
+				fmt.Println(fmt.Errorf("failed to read employee preference: %w", err))
 
 				return
 			}

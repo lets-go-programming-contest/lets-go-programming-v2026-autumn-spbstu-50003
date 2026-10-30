@@ -2,44 +2,59 @@ package main
 
 import (
 	"fmt"
-	"sort"
 )
 
+const (
+	MinAllowedTemp = 15
+	MaxAllowedTemp = 30
+)
+
+type TempRange struct {
+	Min int
+	Max int
+}
+
 func main() {
-	var elementsCount int
+	var departments int
+	if _, err := fmt.Scan(&departments); err != nil {
+		return
+	}
 
-	for {
-		_, err := fmt.Scan(&elementsCount)
-		if err != nil {
-			break
+	for range departments {
+		var employees int
+		if _, err := fmt.Scan(&employees); err != nil {
+			return
 		}
 
-		elements := make([]int, elementsCount)
-
-		for i := range elementsCount {
-			_, _ = fmt.Scan(&elements[i])
+		currentRange := TempRange{
+			Min: MinAllowedTemp,
+			Max: MaxAllowedTemp,
 		}
 
+		for range employees {
+			var operator string
+			var temp int
 
-		sort.Sort(sort.Reverse(sort.IntSlice(elements)))
+			_, err := fmt.Scan(&operator, &temp)
+			if err != nil {
+				return
+			}
 
-		var queriesCount int
-		_, err = fmt.Scan(&queriesCount)
-		if err != nil {
-			break
-		}
+			switch operator {
+			case ">=":
+				if temp > currentRange.Min {
+					currentRange.Min = temp
+				}
+			case "<=":
+				if temp < currentRange.Max {
+					currentRange.Max = temp
+				}
+			}
 
-
-		for range queriesCount {
-			var kth int
-			_, _ = fmt.Scan(&kth)
-
-
-			if kth > elementsCount || kth < 1 {
+			if currentRange.Min > currentRange.Max {
 				fmt.Println(-1)
 			} else {
-
-				fmt.Println(elements[kth-1])
+				fmt.Println(currentRange.Min)
 			}
 		}
 	}

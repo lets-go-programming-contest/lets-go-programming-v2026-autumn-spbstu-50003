@@ -1,6 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+)
 
 const (
 	MinAllowedTemp = 15
@@ -17,11 +23,7 @@ func (t *TempRange) Reset() {
 	t.Max = MaxAllowedTemp
 }
 
-func (t *TempRange) Apply(operator string, temp int) int {
-	if t.Min > t.Max {
-		t.Reset()
-	}
-
+func (t *TempRange) Apply(operator string, temp int) {
 	switch operator {
 	case ">=":
 		if temp > t.Min {
@@ -32,40 +34,48 @@ func (t *TempRange) Apply(operator string, temp int) int {
 			t.Max = temp
 		}
 	}
+}
 
+func (t *TempRange) GetResult() int {
 	if t.Min > t.Max {
 		return -1
 	}
-	
-	return t.Max
+	return t.Min
 }
 
 func main() {
-	var departments int
-	if _, err := fmt.Scan(&departments); err != nil {
-		return
-	}
+	scanner := bufio.NewScanner(os.Stdin)
 
-	for range departments {
-		var employees int
-		if _, err := fmt.Scan(&employees); err != nil {
-			return
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
 		}
 
-		currentRange := TempRange{
-			Min: MinAllowedTemp,
-			Max: MaxAllowedTemp,
+		parts := strings.Fields(line)
+		if len(parts) == 0 {
+			continue
 		}
 
-		for range employees {
-			var operator string
-			var temp int
+		n, err := strconv.Atoi(parts[0])
+		if err != nil || n == 0 {
+			continue
+		}
 
-			if _, err := fmt.Scan(&operator, &temp); err != nil {
-				return
+		var currentRange TempRange
+		currentRange.Reset()
+
+		for i := 1; i <= n && i < len(parts); i++ {
+			if i+1 < len(parts) {
+				operator := parts[i]
+				temp, err := strconv.Atoi(parts[i+1])
+				if err == nil {
+					currentRange.Apply(operator, temp)
+				}
+				i++
 			}
-
-			fmt.Println(currentRange.Apply(operator, temp))
 		}
+
+		fmt.Println(currentRange.GetResult())
 	}
 }

@@ -1,12 +1,6 @@
 package main
 
-import (
-	"bufio"
-	"fmt"
-	"os"
-	"strconv"
-	"strings"
-)
+import "fmt"
 
 const (
 	MinAllowedTemp = 15
@@ -40,42 +34,42 @@ func (t *TempRange) GetResult() int {
 	if t.Min > t.Max {
 		return -1
 	}
+
 	return t.Min
 }
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
+	var departments int
 
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-
-		parts := strings.Fields(line)
-		if len(parts) == 0 {
-			continue
-		}
-
-		n, err := strconv.Atoi(parts[0])
-		if err != nil || n == 0 {
-			continue
+	for {
+		_, err := fmt.Scan(&departments)
+		if err != nil {
+			break
 		}
 
 		var currentRange TempRange
 		currentRange.Reset()
 
-		for i := 1; i <= n && i < len(parts); i++ {
-			if i+1 < len(parts) {
-				operator := parts[i]
-				temp, err := strconv.Atoi(parts[i+1])
-				if err == nil {
-					currentRange.Apply(operator, temp)
+		for range departments {
+			var employees int
+
+			_, err := fmt.Scan(&employees)
+			if err != nil {
+				return
+			}
+
+			for range employees {
+				var operator string
+				var temp int
+
+				_, err := fmt.Scan(&operator, &temp)
+				if err != nil {
+					return
 				}
-				i++
+
+				currentRange.Apply(operator, temp)
+				fmt.Println(currentRange.GetResult())
 			}
 		}
-
-		fmt.Println(currentRange.GetResult())
 	}
 }

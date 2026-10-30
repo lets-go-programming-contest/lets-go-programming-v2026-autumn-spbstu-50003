@@ -41,39 +41,34 @@ func (t *TempRange) GetResult() int {
 func main() {
 	var departments int
 
-	for {
-		_, err := fmt.Scan(&departments)
-		if err != nil {
-			break
+	if _, err := fmt.Scan(&departments); err != nil {
+		return
+	}
+
+	for range departments {
+		var employees int
+
+		if _, err := fmt.Scan(&employees); err != nil {
+			return
 		}
 
 		var currentRange TempRange
 
 		currentRange.Reset()
 
-		for range departments {
-			var employees int
+		for range employees {
+			var (
+				operator string
+				temp     int
+			)
 
-			_, err := fmt.Scan(&employees)
-			if err != nil {
+			if _, err := fmt.Scan(&operator, &temp); err != nil {
 				return
 			}
 
-			for range employees {
-				var (
-					operator string
-					temp     int
-				)
+			currentRange.Apply(operator, temp)
 
-				_, err := fmt.Scan(&operator, &temp)
-				if err != nil {
-					return
-				}
-
-				currentRange.Apply(operator, temp)
-
-				fmt.Println(currentRange.GetResult())
-			}
+			fmt.Println(currentRange.GetResult())
 		}
 	}
 }

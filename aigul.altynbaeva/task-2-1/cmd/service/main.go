@@ -48,6 +48,7 @@ func main() {
 		}
 
 		var currentRange TempRange
+
 		currentRange.Reset()
 
 		for range departments {
@@ -59,8 +60,10 @@ func main() {
 			}
 
 			for range employees {
-				var operator string
-				var temp int
+				var (
+					operator string
+					temp     int
+				)
 
 				_, err := fmt.Scan(&operator, &temp)
 				if err != nil {
@@ -68,6 +71,7 @@ func main() {
 				}
 
 				currentRange.Apply(operator, temp)
+
 				fmt.Println(currentRange.GetResult())
 			}
 		}

@@ -1,72 +1,45 @@
 package main
 
 import (
-	"container/heap"
 	"fmt"
+	"sort"
 )
 
-type MaxHeap []int
-
-func (h MaxHeap) Len() int {
-	return len(h)
-}
-
-func (h MaxHeap) Less(i, j int) bool {
-	return h[i] > h[j]
-}
-
-func (h MaxHeap) Swap(i, j int) {
-	h[i], h[j] = h[j], h[i]
-}
-
-func (h *MaxHeap) Push(x any) {
-	*h = append(*h, x.(int))
-}
-
-func (h *MaxHeap) Pop() any {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[:n-1]
-	return x
-}
-
 func main() {
-	var n int
+	var elementsCount int
+
 	for {
-		_, err := fmt.Scan(&n)
+		_, err := fmt.Scan(&elementsCount)
 		if err != nil {
 			break
 		}
 
-		h := &MaxHeap{}
-		heap.Init(h)
+		elements := make([]int, elementsCount)
 
-		for range n {
-			var val int
-			_, _ = fmt.Scan(&val)
-			heap.Push(h, val)
+		for i := range elementsCount {
+			_, _ = fmt.Scan(&elements[i])
 		}
 
-		var m int
-		_, _ = fmt.Scan(&m)
 
-		for range m {
-			var k int
-			_, _ = fmt.Scan(&k)
+		sort.Sort(sort.Reverse(sort.IntSlice(elements)))
 
-			if k > n || k < 1 {
+		var queriesCount int
+		_, err = fmt.Scan(&queriesCount)
+		if err != nil {
+			break
+		}
+
+
+		for range queriesCount {
+			var kth int
+			_, _ = fmt.Scan(&kth)
+
+
+			if kth > elementsCount || kth < 1 {
 				fmt.Println(-1)
 			} else {
-				temp := make([]int, 0, k)
-				for range k {
-					temp = append(temp, heap.Pop(h).(int))
-				}
-				result := temp[k-1]
-				for _, v := range temp {
-					heap.Push(h, v)
-				}
-				fmt.Println(result)
+
+				fmt.Println(elements[kth-1])
 			}
 		}
 	}

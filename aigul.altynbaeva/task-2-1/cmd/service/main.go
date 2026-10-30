@@ -1,70 +1,71 @@
 package main
 
-import (
-	"container/heap"
-	"fmt"
+import "fmt"
+
+const (
+	MinAllowedTemp = 15
+	MaxAllowedTemp = 30
 )
 
-type MaxHeap []int
-
-func (h *MaxHeap) Len() int {
-	return len(*h)
+type TempRange struct {
+	Min int
+	Max int
 }
 
-func (h *MaxHeap) Less(i, j int) bool {
-	return (*h)[i] > (*h)[j]
+func (t *TempRange) Reset() {
+	t.Min = MinAllowedTemp
+	t.Max = MaxAllowedTemp
 }
 
-func (h *MaxHeap) Swap(i, j int) {
-	(*h)[i], (*h)[j] = (*h)[j], (*h)[i]
-}
-
-func (h *MaxHeap) Push(x any) {
-	if val, ok := x.(int); ok {
-		*h = append(*h, val)
+func (t *TempRange) Apply(operator string, temp int) int {
+	if t.Min > t.Max {
+		t.Reset()
 	}
-}
 
-func (h *MaxHeap) Pop() any {
-	old := *h
-	length := len(old)
-	result := old[length-1]
-	*h = old[:length-1]
+	switch operator {
+	case ">=":
+		if temp > t.Min {
+			t.Min = temp
+		}
+	case "<=":
+		if temp < t.Max {
+			t.Max = temp
+		}
+	}
 
-	return result
+	if t.Min > t.Max {
+		return -1
+	}
+	
+	return t.Max
 }
 
 func main() {
-	var count int
+	var departments int
+	if _, err := fmt.Scan(&departments); err != nil {
+		return
+	}
 
-	for {
-		_, err := fmt.Scan(&count)
-		if err != nil {
-			break
+	for range departments {
+		var employees int
+		if _, err := fmt.Scan(&employees); err != nil {
+			return
 		}
 
-		maxHeap := &MaxHeap{}
-		heap.Init(maxHeap)
-
-		var value int
-
-		for range count {
-			_, _ = fmt.Scan(&value)
-			heap.Push(maxHeap, value)
+		currentRange := TempRange{
+			Min: MinAllowedTemp,
+			Max: MaxAllowedTemp,
 		}
 
-		var targetK int
+		for range employees {
+			var operator string
+			var temp int
 
-		_, _ = fmt.Scan(&targetK)
-
-		if targetK > count || targetK < 1 {
-			fmt.Println(-1)
-		} else {
-			for range targetK - 1 {
-				heap.Pop(maxHeap)
+			if _, err := fmt.Scan(&operator, &temp); err != nil {
+				return
 			}
 
-			fmt.Println(heap.Pop(maxHeap))
+			fmt.Println(currentRange.Apply(operator, temp))
 		}
 	}
 }

@@ -3,79 +3,43 @@ package main
 import (
 	"container/heap"
 	"fmt"
+
+	"github.com/neBr3aD/task-2-2/internal/intheap"
 )
-
-type IntHeap []int
-
-func (h *IntHeap) Len() int {
-	return len(*h)
-}
-
-func (h *IntHeap) Less(i, j int) bool {
-	return (*h)[i] < (*h)[j]
-}
-
-func (h *IntHeap) Swap(i, j int) {
-	(*h)[i], (*h)[j] = (*h)[j], (*h)[i]
-}
-
-func (h *IntHeap) Push(x any) {
-	value, isTrue := x.(int)
-	if !isTrue {
-		fmt.Println("Not the right type!")
-
-		return
-	}
-
-	*h = append(*h, value)
-}
-
-func (h *IntHeap) Pop() any {
-	old := *h
-	length := len(old)
-	x := old[length-1]
-	*h = old[0 : length-1]
-
-	return x
-}
 
 func main() {
 	var foodCount int
-
 	if _, err := fmt.Scan(&foodCount); err != nil {
-		fmt.Println(err)
-
+		fmt.Println(fmt.Errorf("failed to read food count: %w", err))
 		return
 	}
 
 	foodRating := make([]int, foodCount)
-
 	for i := range foodCount {
 		if _, err := fmt.Scan(&foodRating[i]); err != nil {
-			fmt.Println(err)
-
+			fmt.Println(fmt.Errorf("failed to read rating for food #%d: %w", i+1, err))
 			return
 		}
 	}
 
 	var preference int
-
 	if _, err := fmt.Scan(&preference); err != nil {
-		fmt.Println(err)
-
+		fmt.Println(fmt.Errorf("failed to read preference: %w", err))
 		return
 	}
 
-	intHeap := &IntHeap{}
-	heap.Init(intHeap)
+	h := &intheap.IntHeap{}
+	heap.Init(h)
 
 	for _, value := range foodRating {
-		heap.Push(intHeap, value)
+		heap.Push(h, value)
 
-		if intHeap.Len() > preference {
-			heap.Pop(intHeap)
+		if h.Len() > preference {
+			heap.Pop(h)
 		}
 	}
 
-	fmt.Println((*intHeap)[0])
+	if h.Len() > 0 {
+		fmt.Println((*h)[0])
+	}
 }

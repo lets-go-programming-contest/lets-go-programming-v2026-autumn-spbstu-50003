@@ -34,6 +34,7 @@ func (h *IntHeap) Push(x any) {
 func (h *IntHeap) Pop() any {
 	old := *h
 	length := len(old)
+
 	if length == 0 {
 		return nil
 	}

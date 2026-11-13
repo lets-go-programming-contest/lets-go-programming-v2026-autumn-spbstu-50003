@@ -11,6 +11,7 @@ func main() {
 	var foodCount int
 	if _, err := fmt.Scan(&foodCount); err != nil {
 		fmt.Println(fmt.Errorf("failed to read food count: %w", err))
+
 		return
 	}
 
@@ -18,6 +19,7 @@ func main() {
 	for i := range foodCount {
 		if _, err := fmt.Scan(&foodRating[i]); err != nil {
 			fmt.Println(fmt.Errorf("failed to read rating for food #%d: %w", i+1, err))
+
 			return
 		}
 	}
@@ -25,21 +27,22 @@ func main() {
 	var preference int
 	if _, err := fmt.Scan(&preference); err != nil {
 		fmt.Println(fmt.Errorf("failed to read preference: %w", err))
+
 		return
 	}
 
-	h := &intheap.IntHeap{}
-	heap.Init(h)
+	minHeap := &intheap.IntHeap{}
+	heap.Init(minHeap)
 
 	for _, value := range foodRating {
-		heap.Push(h, value)
+		heap.Push(minHeap, value)
 
-		if h.Len() > preference {
-			heap.Pop(h)
+		if minHeap.Len() > preference {
+			heap.Pop(minHeap)
 		}
 	}
 
-	if h.Len() > 0 {
-		fmt.Println((*h)[0])
+	if minHeap.Len() > 0 {
+		fmt.Println((*minHeap)[0])
 	}
 }

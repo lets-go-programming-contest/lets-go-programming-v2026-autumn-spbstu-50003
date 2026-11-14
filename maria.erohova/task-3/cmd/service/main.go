@@ -40,7 +40,7 @@ type ValCurs struct {
 }
 
 type Valute struct {
-	NumCode  string `xml:"NumCode"`
+	NumCode  int    `xml:"NumCode"`
 	CharCode string `xml:"CharCode"`
 	Value    string `xml:"Value"`
 }
@@ -102,11 +102,6 @@ func loadCurrencies(path string) ([]Currency, error) {
 	result := make([]Currency, 0, len(curs.Valutes))
 
 	for _, valute := range curs.Valutes {
-		numCode, err := strconv.Atoi(strings.TrimSpace(valute.NumCode))
-		if err != nil {
-			return nil, fmt.Errorf("parse num code %q: %w", valute.NumCode, err)
-		}
-
 		rawValue := strings.ReplaceAll(strings.TrimSpace(valute.Value), ",", ".")
 
 		value, err := strconv.ParseFloat(rawValue, floatBitSize)
@@ -115,7 +110,7 @@ func loadCurrencies(path string) ([]Currency, error) {
 		}
 
 		result = append(result, Currency{
-			NumCode:  numCode,
+			NumCode:  valute.NumCode,
 			CharCode: strings.TrimSpace(valute.CharCode),
 			Value:    value,
 		})

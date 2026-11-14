@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -13,6 +14,19 @@ import (
 
 	"golang.org/x/net/html/charset"
 	"gopkg.in/yaml.v3"
+)
+
+const (
+	dirPermission  = 0o755
+	filePermission = 0o644
+	jsonIndent     = "    "
+	floatBitSize   = 64
+)
+
+var (
+	ErrEmptyConfigPath = errors.New("config path is not set (use -config flag)")
+	ErrEmptyInputFile  = errors.New("input-file is not set in config")
+	ErrEmptyOutputFile = errors.New("output-file is not set in config")
 )
 
 type Config struct {
@@ -37,97 +51,123 @@ type Currency struct {
 	Value    float64 `json:"value"`
 }
 
-func main() {
-	configPath := flag.String("config", "", "путь до YAML-файла конфигурации")
-	flag.Parse()
+func loadConfig(path string) (Config, error) {
+	var cfg Config
 
-	if strings.TrimSpace(*configPath) == "" {
-		panic("не указан путь до файла конфигурации (флаг -config)")
-	}
-
-	cfg := loadConfig(*configPath)
-	currencies := loadCurrencies(cfg.InputFile)
-
-	sort.SliceStable(currencies, func(i, j int) bool {
-		return currencies[i].Value > currencies[j].Value
-	})
-
-	saveResult(cfg.OutputFile, currencies)
-}
-
-func loadConfig(path string) Config {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		panic(fmt.Errorf("чтение файла конфигурации: %w", err))
+		return cfg, fmt.Errorf("read config: %w", err)
 	}
 
-	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		panic(fmt.Errorf("разбор файла конфигурации: %w", err))
+		return cfg, fmt.Errorf("parse config: %w", err)
 	}
 
 	cfg.InputFile = strings.TrimSpace(cfg.InputFile)
 	cfg.OutputFile = strings.TrimSpace(cfg.OutputFile)
 
 	if cfg.InputFile == "" {
-		panic("в конфигурации не задано поле input-file")
+		return cfg, ErrEmptyInputFile
 	}
+
 	if cfg.OutputFile == "" {
-		panic("в конфигурации не задано поле output-file")
+		return cfg, ErrEmptyOutputFile
 	}
-	return cfg
+
+	return cfg, nil
 }
 
-func loadCurrencies(path string) []Currency {
-	f, err := os.Open(path)
+func loadCurrencies(path string) ([]Currency, error) {
+	data, err := os.Open(path)
 	if err != nil {
-		panic(fmt.Errorf("открытие входного файла: %w", err))
+		return nil, fmt.Errorf("open input file: %w", err)
 	}
-	defer f.Close()
 
-	dec := xml.NewDecoder(f)
-	dec.CharsetReader = charset.NewReaderLabel
+	decoder := xml.NewDecoder(data)
+	decoder.CharsetReader = charset.NewReaderLabel
 
 	var curs ValCurs
-	if err := dec.Decode(&curs); err != nil {
-		panic(fmt.Errorf("разбор XML: %w", err))
+
+	decodeErr := decoder.Decode(&curs)
+	closeErr := data.Close()
+
+	if decodeErr != nil {
+		return nil, fmt.Errorf("decode xml: %w", decodeErr)
+	}
+
+	if closeErr != nil {
+		return nil, fmt.Errorf("close input file: %w", closeErr)
 	}
 
 	result := make([]Currency, 0, len(curs.Valutes))
-	for _, v := range curs.Valutes {
-		num, err := strconv.Atoi(strings.TrimSpace(v.NumCode))
+
+	for _, valute := range curs.Valutes {
+		numCode, err := strconv.Atoi(strings.TrimSpace(valute.NumCode))
 		if err != nil {
-			panic(fmt.Errorf("некорректный NumCode %q: %w", v.NumCode, err))
+			return nil, fmt.Errorf("parse num code %q: %w", valute.NumCode, err)
 		}
-		val, err := strconv.ParseFloat(strings.ReplaceAll(strings.TrimSpace(v.Value), ",", "."), 64)
+
+		rawValue := strings.ReplaceAll(strings.TrimSpace(valute.Value), ",", ".")
+
+		value, err := strconv.ParseFloat(rawValue, floatBitSize)
 		if err != nil {
-			panic(fmt.Errorf("некорректное Value %q у %s: %w", v.Value, v.CharCode, err))
+			return nil, fmt.Errorf("parse value %q: %w", valute.Value, err)
 		}
+
 		result = append(result, Currency{
-			NumCode:  num,
-			CharCode: strings.TrimSpace(v.CharCode),
-			Value:    val,
+			NumCode:  numCode,
+			CharCode: strings.TrimSpace(valute.CharCode),
+			Value:    value,
 		})
 	}
-	return result
+
+	return result, nil
 }
 
-func saveResult(path string, currencies []Currency) {
-	if dir := filepath.Dir(path); dir != "." {
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			panic(fmt.Errorf("создание директории %q: %w", dir, err))
-		}
+func saveResult(path string, currencies []Currency) error {
+	if err := os.MkdirAll(filepath.Dir(path), dirPermission); err != nil {
+		return fmt.Errorf("create output directory: %w", err)
 	}
 
-	f, err := os.Create(path)
+	data, err := json.MarshalIndent(currencies, "", jsonIndent)
 	if err != nil {
-		panic(fmt.Errorf("создание выходного файла: %w", err))
+		return fmt.Errorf("encode json: %w", err)
 	}
-	defer f.Close()
 
-	enc := json.NewEncoder(f)
-	enc.SetIndent("", "    ")
-	if err := enc.Encode(currencies); err != nil {
-		panic(fmt.Errorf("запись JSON: %w", err))
+	if err := os.WriteFile(path, data, filePermission); err != nil {
+		return fmt.Errorf("write output file: %w", err)
+	}
+
+	return nil
+}
+
+func run(configPath string) error {
+	if strings.TrimSpace(configPath) == "" {
+		return ErrEmptyConfigPath
+	}
+
+	cfg, err := loadConfig(configPath)
+	if err != nil {
+		return err
+	}
+
+	currencies, err := loadCurrencies(cfg.InputFile)
+	if err != nil {
+		return err
+	}
+
+	sort.SliceStable(currencies, func(i, j int) bool {
+		return currencies[i].Value > currencies[j].Value
+	})
+
+	return saveResult(cfg.OutputFile, currencies)
+}
+
+func main() {
+	configPath := flag.String("config", "", "path to YAML configuration file")
+	flag.Parse()
+
+	if err := run(*configPath); err != nil {
+		panic(err)
 	}
 }

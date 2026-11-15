@@ -32,6 +32,8 @@ type config struct {
 	OutputFile string `yaml:"output-file"`
 }
 
+// rate хранит значение курса. В XML ЦБ оно записано с запятой ("43,8254"),
+// поэтому разбираем его сами.
 type rate float64
 
 func (r *rate) UnmarshalText(text []byte) error {
@@ -47,10 +49,12 @@ func (r *rate) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// currency описывает валюту и для чтения из XML, и для записи в JSON.
+// Остальные поля XML (Nominal, Name и т.д.) просто не объявлены и игнорируются.
 type currency struct {
-	NumCode  int    `xml:"NumCode" json:"num_code"`
-	CharCode string `xml:"CharCode" json:"char_code"`
-	Value    rate   `xml:"Value" json:"value"`
+	NumCode  int    `json:"num_code"  xml:"NumCode"`
+	CharCode string `json:"char_code" xml:"CharCode"`
+	Value    rate   `json:"value"     xml:"Value"`
 }
 
 type valCurs struct {
@@ -64,7 +68,10 @@ func readConfig(path string) (config, error) {
 	if err != nil {
 		return cfg, fmt.Errorf("failed to open config file: %w", err)
 	}
-	defer file.Close()
+
+	defer func() {
+		_ = file.Close()
+	}()
 
 	if err := yaml.NewDecoder(file).Decode(&cfg); err != nil {
 		return cfg, fmt.Errorf("failed to decode config file: %w", err)
@@ -85,7 +92,10 @@ func readCurrencies(path string) ([]currency, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open input file: %w", err)
 	}
-	defer file.Close()
+
+	defer func() {
+		_ = file.Close()
+	}()
 
 	decoder := xml.NewDecoder(file)
 	decoder.CharsetReader = charset.NewReaderLabel
@@ -117,13 +127,19 @@ func writeCurrencies(path string, currencies []currency) error {
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
-	defer file.Close()
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", jsonIndent)
 
-	if err := encoder.Encode(currencies); err != nil {
-		return fmt.Errorf("failed to encode output file: %w", err)
+	encodeErr := encoder.Encode(currencies)
+	closeErr := file.Close()
+
+	if encodeErr != nil {
+		return fmt.Errorf("failed to encode output file: %w", encodeErr)
+	}
+
+	if closeErr != nil {
+		return fmt.Errorf("failed to close output file: %w", closeErr)
 	}
 
 	return nil

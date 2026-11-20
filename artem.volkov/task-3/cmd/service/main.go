@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -13,6 +14,13 @@ import (
 
 	"gopkg.in/yaml.v3"
 )
+
+const (
+	dirPermissions  = 0o750
+	filePermissions = 0o600
+)
+
+var errInvalidCurrencyCodes = errors.New("invalid currency codes")
 
 type config struct {
 	InputFile  string `yaml:"input-file"`
@@ -52,6 +60,7 @@ func main() {
 
 	inputPath := strings.TrimSpace(cfg.InputFile)
 	outputPath := strings.TrimSpace(cfg.OutputFile)
+
 	if inputPath == "" || outputPath == "" {
 		panic("input-file and output-file are required")
 	}
@@ -65,10 +74,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err := os.MkdirAll(filepath.Dir(outputPath), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(outputPath), dirPermissions); err != nil {
 		panic(err)
 	}
-	if err := os.WriteFile(outputPath, result, 0o644); err != nil {
+	if err := os.WriteFile(outputPath, result, filePermissions); err != nil {
 		panic(err)
 	}
 }
@@ -76,28 +85,29 @@ func main() {
 func readCurrencies(path string) ([]currency, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read XML file %q: %w", path, err)
 	}
 
 	var rates currencyRates
 	if err := xml.Unmarshal(data, &rates); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decode XML file %q: %w", path, err)
 	}
 
 	currencies := make([]currency, len(rates.Items))
-	for i, item := range rates.Items {
+	for index, item := range rates.Items {
 		code := strings.TrimSpace(item.CharCode)
 		if item.NumCode <= 0 || code == "" {
-			return nil, fmt.Errorf("invalid currency codes: %d, %q", item.NumCode, code)
+			return nil, fmt.Errorf("%w: %d, %q", errInvalidCurrencyCodes, item.NumCode, code)
 		}
 
 		rawValue := strings.ReplaceAll(strings.TrimSpace(item.Value), ",", ".")
+
 		value, err := strconv.ParseFloat(rawValue, 64)
 		if err != nil {
 			return nil, fmt.Errorf("invalid Value for %s: %w", code, err)
 		}
 
-		currencies[i] = currency{
+		currencies[index] = currency{
 			NumCode:  item.NumCode,
 			CharCode: code,
 			Value:    value,
@@ -107,5 +117,6 @@ func readCurrencies(path string) ([]currency, error) {
 	sort.Slice(currencies, func(i, j int) bool {
 		return currencies[i].Value > currencies[j].Value
 	})
+
 	return currencies, nil
 }

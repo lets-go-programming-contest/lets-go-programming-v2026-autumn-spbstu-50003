@@ -1,17 +1,20 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 
+	"golang.org/x/text/encoding/htmlindex"
 	"gopkg.in/yaml.v3"
 )
 
@@ -90,8 +93,11 @@ func readCurrencies(path string) ([]currency, error) {
 		return nil, fmt.Errorf("read XML file %q: %w", path, err)
 	}
 
+	decoder := xml.NewDecoder(bytes.NewReader(data))
+	decoder.CharsetReader = readXMLCharset
+
 	var rates currencyRates
-	if err := xml.Unmarshal(data, &rates); err != nil {
+	if err := decoder.Decode(&rates); err != nil {
 		return nil, fmt.Errorf("decode XML file %q: %w", path, err)
 	}
 
@@ -122,4 +128,13 @@ func readCurrencies(path string) ([]currency, error) {
 	})
 
 	return currencies, nil
+}
+
+func readXMLCharset(label string, input io.Reader) (io.Reader, error) {
+	encoding, err := htmlindex.Get(label)
+	if err != nil {
+		return nil, fmt.Errorf("lookup XML encoding %q: %w", label, err)
+	}
+
+	return encoding.NewDecoder().Reader(input), nil
 }

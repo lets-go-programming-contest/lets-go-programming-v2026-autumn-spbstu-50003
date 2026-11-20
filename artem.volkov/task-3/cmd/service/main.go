@@ -74,9 +74,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	if err := os.MkdirAll(filepath.Dir(outputPath), dirPermissions); err != nil {
 		panic(err)
 	}
+
 	if err := os.WriteFile(outputPath, result, filePermissions); err != nil {
 		panic(err)
 	}
@@ -94,6 +96,7 @@ func readCurrencies(path string) ([]currency, error) {
 	}
 
 	currencies := make([]currency, len(rates.Items))
+
 	for index, item := range rates.Items {
 		code := strings.TrimSpace(item.CharCode)
 		if item.NumCode <= 0 || code == "" {

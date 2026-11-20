@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -22,8 +21,6 @@ const (
 	dirPermissions  = 0o750
 	filePermissions = 0o600
 )
-
-var errInvalidCurrencyCodes = errors.New("invalid currency codes")
 
 type config struct {
 	InputFile  string `yaml:"input-file"`
@@ -105,9 +102,6 @@ func readCurrencies(path string) ([]currency, error) {
 
 	for index, item := range rates.Items {
 		code := strings.TrimSpace(item.CharCode)
-		if item.NumCode <= 0 || code == "" {
-			return nil, fmt.Errorf("%w: %d, %q", errInvalidCurrencyCodes, item.NumCode, code)
-		}
 
 		rawValue := strings.ReplaceAll(strings.TrimSpace(item.Value), ",", ".")
 

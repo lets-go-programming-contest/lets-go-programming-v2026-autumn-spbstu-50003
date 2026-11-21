@@ -25,10 +25,10 @@ type ValCurs struct {
 }
 
 type Valute struct {
-	NumCode  int     `json:"num_code" xml:"NumCode"`
+	NumCode  int     `json:"num_code"  xml:"NumCode"`
 	CharCode string  `json:"char_code" xml:"CharCode"`
-	RawValue string  `json:"-" xml:"Value"`
-	Value    float64 `json:"value" xml:"-"`
+	RawValue string  `json:"-"         xml:"Value"`
+	Value    float64 `json:"value"     xml:"-"`
 }
 
 func LoadAndSort(inputPath string) ([]Valute, error) {

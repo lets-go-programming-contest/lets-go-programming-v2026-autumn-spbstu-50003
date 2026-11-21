@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,16 +17,18 @@ import (
 
 const dirPerm = 0o755
 
+var ErrInvalidXML = errors.New("invalid xml signature or empty ValCurs")
+
 type ValCurs struct {
-	XMLName xml.Name `xml:"ValCurs" json:"-"`
-	Valutes []Valute `xml:"Valute" json:"-"`
+	XMLName xml.Name `json:"-" xml:"ValCurs"`
+	Valutes []Valute `json:"-" xml:"Valute"`
 }
 
 type Valute struct {
-	NumCode  int     `xml:"NumCode" json:"num_code"`
-	CharCode string  `xml:"CharCode" json:"char_code"`
-	RawValue string  `xml:"Value" json:"-"`
-	Value    float64 `xml:"-" json:"value"`
+	NumCode  int     `json:"num_code" xml:"NumCode"`
+	CharCode string  `json:"char_code" xml:"CharCode"`
+	RawValue string  `json:"-"        xml:"Value"`
+	Value    float64 `json:"value"    xml:"-"`
 }
 
 func LoadAndSort(inputPath string) ([]Valute, error) {
@@ -42,11 +45,12 @@ func LoadAndSort(inputPath string) ([]Valute, error) {
 		return nil, fmt.Errorf("decode xml data: %w", err)
 	}
 
-	if curs.XMLName.Local != "ValCurs" || len(curs.Valutes) == 0 {
-		return nil, fmt.Errorf("invalid xml signature or empty ValCurs")
+	if curs.XMLName.Local != "ValCurs" {
+		return nil, fmt.Errorf("validate xml: %w", ErrInvalidXML)
 	}
 
 	result := make([]Valute, 0, len(curs.Valutes))
+
 	for _, item := range curs.Valutes {
 		normalized := strings.ReplaceAll(strings.TrimSpace(item.RawValue), ",", ".")
 		parsedVal, err := strconv.ParseFloat(normalized, 64)
@@ -55,10 +59,6 @@ func LoadAndSort(inputPath string) ([]Valute, error) {
 		}
 
 		item.CharCode = strings.TrimSpace(item.CharCode)
-		if item.NumCode <= 0 || item.CharCode == "" {
-			return nil, fmt.Errorf("invalid currency fields: num_code=%d char_code=%q", item.NumCode, item.CharCode)
-		}
-
 		item.Value = parsedVal
 		result = append(result, item)
 	}

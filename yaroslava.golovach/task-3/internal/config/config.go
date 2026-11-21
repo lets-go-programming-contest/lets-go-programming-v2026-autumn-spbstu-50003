@@ -1,11 +1,17 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 
 	"gopkg.in/yaml.v3"
+)
+
+var (
+	ErrMissingInputFile  = errors.New("input-file is required")
+	ErrMissingOutputFile = errors.New("output-file is required")
 )
 
 type Config struct {
@@ -28,11 +34,11 @@ func Load(path string) (Config, error) {
 	cfg.OutputFile = strings.TrimSpace(cfg.OutputFile)
 
 	if cfg.InputFile == "" {
-		return Config{}, fmt.Errorf("input-file is required")
+		return Config{}, fmt.Errorf("validate config: %w", ErrMissingInputFile)
 	}
 
 	if cfg.OutputFile == "" {
-		return Config{}, fmt.Errorf("output-file is required")
+		return Config{}, fmt.Errorf("validate config: %w", ErrMissingOutputFile)
 	}
 
 	return cfg, nil

@@ -118,7 +118,6 @@ func convertItem(raw rawValute) (Record, error) {
 
 	valStr := strings.ReplaceAll(strings.TrimSpace(raw.Value), ",", ".")
 	valFloat, err := strconv.ParseFloat(valStr, 64)
-
 	if err != nil {
 		return Record{}, fmt.Errorf("%w %q: %w", ErrInvalidRate, raw.Value, err)
 	}

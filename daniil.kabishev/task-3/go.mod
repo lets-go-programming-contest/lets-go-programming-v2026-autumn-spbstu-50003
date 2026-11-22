@@ -1,4 +1,4 @@
-module golabs
+module github.com/daniil-kabishev/task-3
 
 go 1.22
 

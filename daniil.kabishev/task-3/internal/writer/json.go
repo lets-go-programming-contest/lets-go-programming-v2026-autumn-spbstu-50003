@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"golabs/internal/models"
+	"github.com/daniil-kabishev/task-3/internal/models"
 )
 
 const (

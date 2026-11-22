@@ -4,9 +4,9 @@ import (
 	"flag"
 	"sort"
 
-	"golabs/internal/config"
-	"golabs/internal/parser"
-	"golabs/internal/writer"
+	"github.com/daniil-kabishev/task-3/internal/config"
+	"github.com/daniil-kabishev/task-3/internal/parser"
+	"github.com/daniil-kabishev/task-3/internal/writer"
 )
 
 const defaultConfigPath = "config.yaml"

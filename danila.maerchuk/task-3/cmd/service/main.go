@@ -44,15 +44,15 @@ type Valute struct {
 type FloatValue float64
 
 func (f *FloatValue) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	var v string
+	var valueStr string
 
-	if err := d.DecodeElement(&v, &start); err != nil {
+	if err := d.DecodeElement(&valueStr, &start); err != nil {
 		return fmt.Errorf("decode element: %w", err)
 	}
 
-	v = strings.ReplaceAll(v, ",", ".")
+	valueStr = strings.ReplaceAll(valueStr, ",", ".")
 
-	parsed, err := strconv.ParseFloat(v, floatBitSize)
+	parsed, err := strconv.ParseFloat(valueStr, floatBitSize)
 	if err != nil {
 		return fmt.Errorf("parse float: %w", err)
 	}

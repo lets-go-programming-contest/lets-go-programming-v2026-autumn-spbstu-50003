@@ -15,6 +15,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const (
+	dirPerm  = 0o755
+	filePerm = 0o600
+)
+
 type Config struct {
 	InputFile  string `yaml:"input-file"`
 	OutputFile string `yaml:"output-file"`
@@ -91,10 +96,10 @@ func main() {
 	})
 
 	dir := filepath.Dir(conf.OutputFile)
-	must(os.MkdirAll(dir, 0o755))
+	must(os.MkdirAll(dir, dirPerm))
 
 	output, err := json.MarshalIndent(items, "", "  ")
 	must(err)
 
-	must(os.WriteFile(conf.OutputFile, output, 0o600))
+	must(os.WriteFile(conf.OutputFile, output, filePerm))
 }

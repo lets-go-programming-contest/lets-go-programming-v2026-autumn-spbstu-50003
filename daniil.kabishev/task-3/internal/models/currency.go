@@ -34,7 +34,7 @@ type ValCurs struct {
 }
 
 type Currency struct {
-	NumCode  int    `json:"num_code" xml:"NumCode"`
+	NumCode  int    `json:"num_code"  xml:"NumCode"`
 	CharCode string `json:"char_code" xml:"CharCode"`
-	Value    Float  `json:"value" xml:"Value"`
+	Value    Float  `json:"value"     xml:"Value"`
 }

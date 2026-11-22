@@ -7,6 +7,7 @@ import (
  "encoding/xml"
  "errors"
  "flag"
+ "fmt"
  "io"
  "os"
  "path/filepath"
@@ -22,6 +23,8 @@ const (
  folderPermissions = 0o755
  filePermissions   = 0o600
 )
+
+var errEmptyConfigPaths = errors.New("empty paths in config")
 
 type AppConfig struct {
  Input  string `yaml:"input-file"`
@@ -48,16 +51,16 @@ type ResultCurrency struct {
 func loadConfig(path string) (AppConfig, error) {
  raw, err := os.ReadFile(path)
  if err != nil {
-  return AppConfig{}, err
+  return AppConfig{}, fmt.Errorf("read config: %w", err)
  }
 
  var cfg AppConfig
  if err := yaml.Unmarshal(raw, &cfg); err != nil {
-  return AppConfig{}, err
+  return AppConfig{}, fmt.Errorf("unmarshal yaml: %w", err)
  }
 
  if cfg.Input == "" || cfg.Output == "" {
-  return AppConfig{}, errors.New("empty paths in config")
+  return AppConfig{}, errEmptyConfigPaths
  }
 
  return cfg, nil
@@ -66,7 +69,7 @@ func loadConfig(path string) (AppConfig, error) {
 func parseCurrenciesXML(path string) ([]ResultCurrency, error) {
  data, err := os.ReadFile(path)
  if err != nil {
-  return nil, err
+  return nil, fmt.Errorf("read xml: %w", err)
  }
 
  decoder := xml.NewDecoder(bytes.NewReader(data))
@@ -80,7 +83,7 @@ func parseCurrenciesXML(path string) ([]ResultCurrency, error) {
 
  var doc RawValCurs
  if err := decoder.Decode(&doc); err != nil {
-  return nil, err
+  return nil, fmt.Errorf("decode xml: %w", err)
  }
 
  result := make([]ResultCurrency, 0, len(doc.Items))
@@ -92,14 +95,15 @@ func parseCurrenciesXML(path string) ([]ResultCurrency, error) {
   if trimmedNum != "" {
    numCode, err = strconv.Atoi(trimmedNum)
    if err != nil {
-    return nil, err
+    return nil, fmt.Errorf("parse num code: %w", err)
    }
   }
 
   normalizedVal := strings.ReplaceAll(strings.TrimSpace(entry.Value), ",", ".")
+
   rate, err := strconv.ParseFloat(normalizedVal, 64)
   if err != nil {
-   return nil, err
+   return nil, fmt.Errorf("parse value: %w", err)
   }
 
   result = append(result, ResultCurrency{
@@ -114,15 +118,19 @@ func parseCurrenciesXML(path string) ([]ResultCurrency, error) {
 
 func saveJSON(path string, items []ResultCurrency) error {
  if err := os.MkdirAll(filepath.Dir(path), folderPermissions); err != nil {
-  return err
+  return fmt.Errorf("create output dir: %w", err)
  }
 
  encoded, err := json.MarshalIndent(items, "", "  ")
  if err != nil {
-  return err
+  return fmt.Errorf("marshal json: %w", err)
  }
 
- return os.WriteFile(path, encoded, filePermissions)
+ if err := os.WriteFile(path, encoded, filePermissions); err != nil {
+  return fmt.Errorf("write output file: %w", err)
+ }
+
+ return nil
 }
 
 func main() {

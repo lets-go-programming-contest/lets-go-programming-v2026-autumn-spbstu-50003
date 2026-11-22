@@ -12,20 +12,20 @@ import (
 	"strings"
 
 	"golang.org/x/net/html/charset"
-	"go.yaml.in/yaml/v3"
+	"gopkg.in/yaml.v3"
 )
 
-type AppConfig struct {
-	Input  string `yaml:"input-file"`
-	Output string `yaml:"output-file"`
+type Config struct {
+	InputFile  string `yaml:"input-file"`
+	OutputFile string `yaml:"output-file"`
 }
 
-type ValCursXML struct {
-	XMLName xml.Name    `xml:"ValCurs"`
-	Valutes []ValuteXML `xml:"Valute"`
+type ValCurs struct {
+	XMLName xml.Name `xml:"ValCurs"`
+	Valutes []Valute `xml:"Valute"`
 }
 
-type ValuteXML struct {
+type Valute struct {
 	NumCode  string `xml:"NumCode"`
 	CharCode string `xml:"CharCode"`
 	Value    string `xml:"Value"`
@@ -44,48 +44,57 @@ func must(err error) {
 }
 
 func main() {
-	cfgPath := flag.String("config", "config.yaml", "path to configuration file")
+	configPath := flag.String("config", "config.yaml", "path to config file")
 	flag.Parse()
 
-	cfgBytes, err := os.ReadFile(*cfgPath)
+	cfgBytes, err := os.ReadFile(*configPath)
 	must(err)
 
-	var conf AppConfig
+	var conf Config
+
 	must(yaml.Unmarshal(cfgBytes, &conf))
 
-	xmlBytes, err := os.ReadFile(conf.Input)
+	xmlBytes, err := os.ReadFile(conf.InputFile)
 	must(err)
 
 	decoder := xml.NewDecoder(bytes.NewReader(xmlBytes))
 	decoder.CharsetReader = charset.NewReaderLabel
 
-	var parsedXML ValCursXML
+	var parsedXML ValCurs
+
 	must(decoder.Decode(&parsedXML))
 
-	var items []FinalValute
-	for _, item := range parsedXML.Valutes {
-		codeInt, err := strconv.Atoi(strings.TrimSpace(item.NumCode))
-		must(err)
+	items := make([]FinalValute, 0, len(parsedXML.Valutes))
 
-		valFloat, err := strconv.ParseFloat(strings.ReplaceAll(strings.TrimSpace(item.Value), ",", "."), 64)
+	for _, item := range parsedXML.Valutes {
+		var numCode int
+
+		cleanNum := strings.TrimSpace(item.NumCode)
+		if cleanNum != "" {
+			numCode, err = strconv.Atoi(cleanNum)
+			must(err)
+		}
+
+		valStr := strings.ReplaceAll(strings.TrimSpace(item.Value), ",", ".")
+		valFloat, err := strconv.ParseFloat(valStr, 64)
 		must(err)
 
 		items = append(items, FinalValute{
-			NumCode:  codeInt,
+			NumCode:  numCode,
 			CharCode: strings.TrimSpace(item.CharCode),
 			Value:    valFloat,
 		})
 	}
 
-	sort.SliceStable(items, func(i, j int) bool {
+	sort.Slice(items, func(i, j int) bool {
 		return items[i].Value > items[j].Value
 	})
+
+	dir := filepath.Dir(conf.OutputFile)
+	must(os.MkdirAll(dir, 0o755))
 
 	output, err := json.MarshalIndent(items, "", "  ")
 	must(err)
 
-	dir := filepath.Dir(conf.Output)
-	must(os.MkdirAll(dir, 0755))
-
-	must(os.WriteFile(conf.Output, output, 0644))
+	must(os.WriteFile(conf.OutputFile, output, 0o600))
 }

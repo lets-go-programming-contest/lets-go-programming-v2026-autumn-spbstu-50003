@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"golang.org/x/net/html/charset"
-
 	"golabs/internal/models"
+
+	"golang.org/x/net/html/charset"
 )
 
 func ParseCurrencies(path string) ([]models.Currency, error) {

@@ -23,6 +23,8 @@ var (
 	ErrInvalidRate = errors.New("invalid rate value")
 )
 
+const dirPermissions = 0o755
+
 type rawValute struct {
 	NumCode  string `xml:"NumCode"`
 	CharCode string `xml:"CharCode"`
@@ -50,6 +52,7 @@ func ProcessXML(path string) ([]Record, error) {
 	decoder.CharsetReader = charset.NewReaderLabel
 
 	var doc xmlDocument
+
 	if err := decoder.Decode(&doc); err != nil {
 		return nil, fmt.Errorf("failed to decode XML: %w", err)
 	}
@@ -65,6 +68,7 @@ func ProcessXML(path string) ([]Record, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error at element %d: %w", i+1, err)
 		}
+
 		records = append(records, rec)
 	}
 
@@ -81,9 +85,11 @@ func ensureNoExtraData(dec *xml.Decoder) error {
 		if errors.Is(err, io.EOF) {
 			return nil
 		}
+
 		if err != nil {
 			return fmt.Errorf("token parsing error: %w", err)
 		}
+
 		switch t := token.(type) {
 		case xml.Comment, xml.ProcInst:
 			continue
@@ -92,6 +98,7 @@ func ensureNoExtraData(dec *xml.Decoder) error {
 				continue
 			}
 		}
+
 		return ErrExtraData
 	}
 }
@@ -112,7 +119,7 @@ func convertItem(raw rawValute) (Record, error) {
 	valStr := strings.ReplaceAll(strings.TrimSpace(raw.Value), ",", ".")
 	valFloat, err := strconv.ParseFloat(valStr, 64)
 	if err != nil {
-		return Record{}, fmt.Errorf("%w %q: %v", ErrInvalidRate, raw.Value, err)
+		return Record{}, fmt.Errorf("%w %q: %w", ErrInvalidRate, raw.Value, err)
 	}
 
 	if math.IsNaN(valFloat) || math.IsInf(valFloat, 0) {
@@ -128,21 +135,25 @@ func convertItem(raw rawValute) (Record, error) {
 
 func SaveJSON(path string, records []Record) error {
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, dirPermissions); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", dir, err)
 	}
 
-	f, err := os.Create(path)
+	file, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("failed to create file: %w", err)
 	}
-	defer f.Close()
 
-	enc := json.NewEncoder(f)
+	defer func() {
+		_ = file.Close()
+	}()
+
+	enc := json.NewEncoder(file)
 	enc.SetIndent("", "  ")
 
 	if err := enc.Encode(records); err != nil {
 		return fmt.Errorf("JSON encoding error: %w", err)
 	}
+
 	return nil
 }

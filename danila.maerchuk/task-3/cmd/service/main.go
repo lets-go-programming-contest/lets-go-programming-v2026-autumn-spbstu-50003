@@ -36,24 +36,29 @@ type Config struct {
 }
 
 type Valute struct {
-	NumCode  int        `xml:"NumCode" json:"num_code"`
-	CharCode string     `xml:"CharCode" json:"char_code"`
-	Value    FloatValue `xml:"Value" json:"value"`
+	NumCode  int        `json:"num_code"  xml:"NumCode"`
+	CharCode string     `json:"char_code" xml:"CharCode"`
+	Value    FloatValue `json:"value"     xml:"Value"`
 }
 
 type FloatValue float64
 
 func (f *FloatValue) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var v string
+
 	if err := d.DecodeElement(&v, &start); err != nil {
-		return err
+		return fmt.Errorf("decode element: %w", err)
 	}
+
 	v = strings.ReplaceAll(v, ",", ".")
+
 	parsed, err := strconv.ParseFloat(v, floatBitSize)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse float: %w", err)
 	}
+
 	*f = FloatValue(parsed)
+
 	return nil
 }
 
@@ -69,6 +74,7 @@ func loadConfig(path string) (Config, error) {
 	}
 
 	var cfg Config
+
 	if err := yaml.Unmarshal(configBytes, &cfg); err != nil {
 		return Config{}, fmt.Errorf("unmarshal config: %w", err)
 	}
@@ -90,15 +96,18 @@ func loadValutes(path string) ([]Valute, error) {
 	}
 
 	decoder := xml.NewDecoder(bytes.NewReader(xmlBytes))
+
 	decoder.CharsetReader = func(charset string, input io.Reader) (io.Reader, error) {
 		enc, err := htmlindex.Get(charset)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %s", errUnsupportedCharset, charset)
 		}
+
 		return enc.NewDecoder().Reader(input), nil
 	}
 
 	var curs ValCurs
+
 	if err := decoder.Decode(&curs); err != nil {
 		return nil, fmt.Errorf("decode xml: %w", err)
 	}
@@ -112,6 +121,7 @@ func loadValutes(path string) ([]Valute, error) {
 
 func saveJSON(path string, data []Valute) error {
 	outDir := filepath.Dir(path)
+
 	if err := os.MkdirAll(outDir, dirPerm); err != nil {
 		return fmt.Errorf("create output directory: %w", err)
 	}
@@ -130,6 +140,7 @@ func saveJSON(path string, data []Valute) error {
 
 func main() {
 	configPath := flag.String("config", "", "config file path")
+
 	flag.Parse()
 
 	if *configPath == "" {

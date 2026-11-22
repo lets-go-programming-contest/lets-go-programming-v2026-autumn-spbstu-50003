@@ -44,6 +44,7 @@ func readConfig(path string) Config {
 
 	var cfg Config
 	err = yaml.Unmarshal(cfgBytes, &cfg)
+
 	if err != nil {
 		panic(err)
 	}
@@ -66,6 +67,7 @@ func readXML(path string) ValCurs {
 
 	var valCurs ValCurs
 	err = decoder.Decode(&valCurs)
+
 	if err != nil {
 		panic(err)
 	}
@@ -74,17 +76,18 @@ func readXML(path string) ValCurs {
 }
 
 func convertCurrencies(valCurs ValCurs) []CurrencyJSON {
-	var currencies []CurrencyJSON
-	for _, v := range valCurs.Valutes {
-		valStr := strings.Replace(v.Value, ",", ".", 1)
+	currencies := make([]CurrencyJSON, 0, len(valCurs.Valutes))
+	for _, valute := range valCurs.Valutes {
+		valStr := strings.Replace(valute.Value, ",", ".", 1)
 		valFloat, err := strconv.ParseFloat(valStr, 64)
+
 		if err != nil {
 			panic(err)
 		}
 
 		currencies = append(currencies, CurrencyJSON{
-			NumCode:  v.NumCode,
-			CharCode: v.CharCode,
+			NumCode:  valute.NumCode,
+			CharCode: valute.CharCode,
 			Value:    valFloat,
 		})
 	}
@@ -109,7 +112,7 @@ func writeJSON(path string, currencies []CurrencyJSON) {
 		panic(err)
 	}
 
-	err = os.WriteFile(path, jsonBytes, 0644)
+	err = os.WriteFile(path, jsonBytes, 0600)
 	if err != nil {
 		panic(err)
 	}

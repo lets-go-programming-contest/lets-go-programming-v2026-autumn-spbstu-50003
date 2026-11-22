@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"os"
-
 	"golabs/internal/models"
+	"os"
 
 	"golang.org/x/net/html/charset"
 )

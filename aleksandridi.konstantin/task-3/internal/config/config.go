@@ -8,6 +8,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var (
+	ErrEmptyConfigPath     = errors.New("не указан путь до файла конфигурации")
+	ErrMissingConfigFields = errors.New("в конфигурации должны быть заданы input-file и output-file")
+)
+
 type Config struct {
 	InputFile  string `yaml:"input-file"`
 	OutputFile string `yaml:"output-file"`
@@ -15,7 +20,7 @@ type Config struct {
 
 func Load(filePath string) (*Config, error) {
 	if filePath == "" {
-		return nil, errors.New("не указан путь до файла конфигурации")
+		return nil, ErrEmptyConfigPath
 	}
 
 	rawBytes, err := os.ReadFile(filePath)
@@ -29,7 +34,7 @@ func Load(filePath string) (*Config, error) {
 	}
 
 	if cfg.InputFile == "" || cfg.OutputFile == "" {
-		return nil, errors.New("в конфигурации должны быть заданы input-file и output-file")
+		return nil, ErrMissingConfigFields
 	}
 
 	return &cfg, nil

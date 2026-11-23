@@ -18,7 +18,7 @@ func NewJSONWriter() *JSONWriter {
 func (jsonWriter *JSONWriter) Write(filePath string, currencies []model.Currency) error {
 	outputDir := filepath.Dir(filePath)
 	if outputDir != "" && outputDir != "." {
-		if err := os.MkdirAll(outputDir, 0755); err != nil {
+		if err := os.MkdirAll(outputDir, 0o755); err != nil {
 			return fmt.Errorf("не удалось создать директорию %s: %w", outputDir, err)
 		}
 	}
@@ -27,7 +27,10 @@ func (jsonWriter *JSONWriter) Write(filePath string, currencies []model.Currency
 	if err != nil {
 		return fmt.Errorf("не удалось создать выходной файл: %w", err)
 	}
-	defer file.Close()
+
+	defer func() {
+		_ = file.Close()
+	}()
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")

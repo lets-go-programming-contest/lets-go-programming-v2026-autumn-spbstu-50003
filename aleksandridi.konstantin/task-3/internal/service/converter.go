@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/neBr3aD/task-3/internal/model"
@@ -29,7 +30,7 @@ func NewConverter(parser CurrencyParser, writer CurrencyWriter) *Converter {
 func (converter *Converter) Convert(inputPath string, outputPath string) error {
 	currencies, err := converter.parser.Parse(inputPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("ошибка парсинга валют: %w", err)
 	}
 
 	if currencies == nil {
@@ -40,5 +41,9 @@ func (converter *Converter) Convert(inputPath string, outputPath string) error {
 		return currencies[firstIndex].Value > currencies[secondIndex].Value
 	})
 
-	return converter.writer.Write(outputPath, currencies)
+	if err := converter.writer.Write(outputPath, currencies); err != nil {
+		return fmt.Errorf("ошибка сохранения валют: %w", err)
+	}
+
+	return nil
 }

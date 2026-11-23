@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/neBr3aD/task-3/internal/model"
-
 	"golang.org/x/net/html/charset"
+
+	"github.com/neBr3aD/task-3/internal/model"
 )
 
 type XMLParser struct{}
@@ -21,7 +21,10 @@ func (xmlParser *XMLParser) Parse(filePath string) ([]model.Currency, error) {
 	if err != nil {
 		return nil, fmt.Errorf("не удалось открыть xml-файл: %w", err)
 	}
-	defer file.Close()
+
+	defer func() {
+		_ = file.Close()
+	}()
 
 	decoder := xml.NewDecoder(file)
 	decoder.CharsetReader = charset.NewReaderLabel

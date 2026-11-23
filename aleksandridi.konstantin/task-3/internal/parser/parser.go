@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"golang.org/x/net/html/charset"
-
 	"github.com/neBr3aD/task-3/internal/model"
+	"golang.org/x/net/html/charset"
 )
 
 type XMLParser struct{}

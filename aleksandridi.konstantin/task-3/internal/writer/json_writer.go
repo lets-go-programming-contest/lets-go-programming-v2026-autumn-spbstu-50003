@@ -9,6 +9,8 @@ import (
 	"github.com/neBr3aD/task-3/internal/model"
 )
 
+const dirPermissions = 0o755
+
 type JSONWriter struct{}
 
 func NewJSONWriter() *JSONWriter {
@@ -18,7 +20,7 @@ func NewJSONWriter() *JSONWriter {
 func (jsonWriter *JSONWriter) Write(filePath string, currencies []model.Currency) error {
 	outputDir := filepath.Dir(filePath)
 	if outputDir != "" && outputDir != "." {
-		if err := os.MkdirAll(outputDir, 0o755); err != nil {
+		if err := os.MkdirAll(outputDir, dirPermissions); err != nil {
 			return fmt.Errorf("не удалось создать директорию %s: %w", outputDir, err)
 		}
 	}

@@ -1,136 +1,33 @@
 package main
 
 import (
-	"bytes"
-	"cmp"
-	"encoding/json"
-	"encoding/xml"
 	"flag"
 	"fmt"
-	"os"
-	"path/filepath"
-	"slices"
-	"strconv"
-	"strings"
 
-	"go.yaml.in/yaml/v3"
-	"golang.org/x/net/html/charset"
+	"github.com/a-sik/task-3/internal/cbr"
+	"github.com/a-sik/task-3/internal/config"
 )
 
-const (
-	dirPerm    os.FileMode = 0o755
-	filePerm   os.FileMode = 0o644
-	configName             = "config.yaml"
-)
-
-type CBRFloat float64
-
-type Config struct {
-	InputFile  string `yaml:"input-file"`
-	OutputFile string `yaml:"output-file"`
-}
-
-type Valute struct {
-	NumCode  int      `json:"num_code"  xml:"NumCode"`
-	CharCode string   `json:"char_code" xml:"CharCode"`
-	Value    CBRFloat `json:"value"     xml:"Value"`
-}
-
-type ValCurs struct {
-	XMLName xml.Name `xml:"ValCurs"`
-	Valutes []Valute `xml:"Valute"`
-}
-
-func (float *CBRFloat) UnmarshalXML(decod *xml.Decoder, start xml.StartElement) error {
-	var str string
-
-	if err := decod.DecodeElement(&str, &start); err != nil {
-		return fmt.Errorf("decode Value element: %w", err)
-	}
-
-	str = strings.TrimSpace(strings.ReplaceAll(str, ",", "."))
-
-	value, err := strconv.ParseFloat(str, 64)
-	if err != nil {
-		return fmt.Errorf("parse Value %q: %w", str, err)
-	}
-
-	*float = CBRFloat(value)
-
-	return nil
-}
-
-func configParse(path string) (Config, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return Config{}, fmt.Errorf("error reading config file: %w", err)
-	}
-
-	var cfg Config
-
-	if err = yaml.Unmarshal(data, &cfg); err != nil {
-		return Config{}, fmt.Errorf("error parsing config file: %w", err)
-	}
-
-	return cfg, nil
-}
-
-func unmarshalXMLInput(config Config) (ValCurs, error) {
-	data, err := os.ReadFile(config.InputFile)
-	if err != nil {
-		return ValCurs{}, fmt.Errorf("error reading input file: %w", err)
-	}
-
-	decoder := xml.NewDecoder(bytes.NewReader(data))
-	decoder.CharsetReader = charset.NewReaderLabel
-
-	var valCurs ValCurs
-
-	if err := decoder.Decode(&valCurs); err != nil {
-		return ValCurs{}, fmt.Errorf("error parsing input file: %w", err)
-	}
-
-	return valCurs, nil
-}
-
-func (val *ValCurs) processData() {
-	slices.SortFunc(val.Valutes, func(a, b Valute) int {
-		return cmp.Compare(b.Value, a.Value)
-	})
-}
-
-func (val *ValCurs) marshalJSONOutput(config Config) error {
-	outputJSON, err := json.MarshalIndent(val.Valutes, "", "    ")
-	if err != nil {
-		return fmt.Errorf("serialization error: %w", err)
-	}
-
-	if err := os.MkdirAll(filepath.Dir(config.OutputFile), dirPerm); err != nil {
-		return fmt.Errorf("error creating directory: %w", err)
-	}
-
-	err = os.WriteFile(config.OutputFile, outputJSON, filePerm)
-	if err != nil {
-		return fmt.Errorf("error writing output file: %w", err)
-	}
-
-	return nil
-}
+const configName = "config.yaml"
 
 func run(configPath string) error {
-	config, err := configParse(configPath)
+	config, err := config.ConfigParse(configPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse config %q: %w", configPath, err)
 	}
 
-	valutes, err := unmarshalXMLInput(config)
+	valutes, err := cbr.UnmarshalXMLInput(config.InputFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse input file %q: %w", config.InputFile, err)
 	}
 
-	valutes.processData()
+	valutes.ProcessData()
 
-	return valutes.marshalJSONOutput(config)
+	if err := valutes.MarshalJSONOutput(config.OutputFile); err != nil {
+		return fmt.Errorf("write output file %q: %w", config.OutputFile, err)
+	}
+
+	return nil
 }
 
 func main() {

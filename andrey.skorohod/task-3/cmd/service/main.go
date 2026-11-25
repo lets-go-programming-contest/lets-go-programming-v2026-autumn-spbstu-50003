@@ -18,8 +18,9 @@ import (
 )
 
 const (
-	dirPerm  os.FileMode = 0o755
-	filePerm os.FileMode = 0o644
+	dirPerm    os.FileMode = 0o755
+	filePerm   os.FileMode = 0o644
+	configName             = "config.yaml"
 )
 
 type CBRFloat float64
@@ -30,20 +31,14 @@ type Config struct {
 }
 
 type Valute struct {
-	NumCode  string   `xml:"NumCode"`
-	CharCode string   `xml:"CharCode"`
-	Value    CBRFloat `xml:"Value"`
+	NumCode  int      `json:"num_code"  xml:"NumCode"`
+	CharCode string   `json:"char_code" xml:"CharCode"`
+	Value    CBRFloat `json:"value"     xml:"Value"`
 }
 
-type ValCursXML struct {
+type ValCurs struct {
 	XMLName xml.Name `xml:"ValCurs"`
 	Valutes []Valute `xml:"Valute"`
-}
-
-type ValuteJSON struct {
-	NumCode  int     `json:"num_code"`
-	CharCode string  `json:"char_code"`
-	Value    float64 `json:"value"`
 }
 
 func (float *CBRFloat) UnmarshalXML(decod *xml.Decoder, start xml.StartElement) error {
@@ -80,54 +75,32 @@ func configParse(path string) (Config, error) {
 	return cfg, nil
 }
 
-func unmarshalXMLInput(config Config) (ValCursXML, error) {
+func unmarshalXMLInput(config Config) (ValCurs, error) {
 	data, err := os.ReadFile(config.InputFile)
 	if err != nil {
-		return ValCursXML{}, fmt.Errorf("error reading input file: %w", err)
+		return ValCurs{}, fmt.Errorf("error reading input file: %w", err)
 	}
 
 	decoder := xml.NewDecoder(bytes.NewReader(data))
 	decoder.CharsetReader = charset.NewReaderLabel
 
-	var valCurs ValCursXML
+	var valCurs ValCurs
 
 	if err := decoder.Decode(&valCurs); err != nil {
-		return ValCursXML{}, fmt.Errorf("error parsing input file: %w", err)
+		return ValCurs{}, fmt.Errorf("error parsing input file: %w", err)
 	}
 
 	return valCurs, nil
 }
 
-func (val *ValCursXML) processData() {
+func (val *ValCurs) processData() {
 	slices.SortFunc(val.Valutes, func(a, b Valute) int {
 		return cmp.Compare(b.Value, a.Value)
 	})
 }
 
-func (val *ValCursXML) marshalJSONOutput(config Config) error {
-	outputJSON := make([]ValuteJSON, 0, len(val.Valutes))
-
-	for _, valute := range val.Valutes {
-		numCodeStr := strings.TrimSpace(valute.NumCode)
-		numCodeInt := 0
-
-		if numCodeStr != "" {
-			parsed, err := strconv.Atoi(numCodeStr)
-			if err != nil {
-				return fmt.Errorf("parse NumCode %q: %w", valute.NumCode, err)
-			}
-
-			numCodeInt = parsed
-		}
-
-		outputJSON = append(outputJSON, ValuteJSON{
-			NumCode:  numCodeInt,
-			CharCode: strings.TrimSpace(valute.CharCode),
-			Value:    float64(valute.Value),
-		})
-	}
-
-	fileData, err := json.MarshalIndent(outputJSON, "", "    ")
+func (val *ValCurs) marshalJSONOutput(config Config) error {
+	outputJSON, err := json.MarshalIndent(val.Valutes, "", "    ")
 	if err != nil {
 		return fmt.Errorf("serialization error: %w", err)
 	}
@@ -136,7 +109,7 @@ func (val *ValCursXML) marshalJSONOutput(config Config) error {
 		return fmt.Errorf("error creating directory: %w", err)
 	}
 
-	err = os.WriteFile(config.OutputFile, fileData, filePerm)
+	err = os.WriteFile(config.OutputFile, outputJSON, filePerm)
 	if err != nil {
 		return fmt.Errorf("error writing output file: %w", err)
 	}
@@ -161,7 +134,7 @@ func run(configPath string) error {
 }
 
 func main() {
-	configPath := flag.String("config", "config.yaml", "Path to config file")
+	configPath := flag.String("config", configName, "Path to config file")
 	flag.Parse()
 
 	if err := run(*configPath); err != nil {

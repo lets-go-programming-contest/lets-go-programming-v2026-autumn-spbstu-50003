@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 
 	"github.com/ezttmv/task-3/internal/config"
 	"github.com/ezttmv/task-3/internal/currency"
@@ -20,17 +21,22 @@ func run(configPath string) error {
 
 	cfg, err := config.Load(configPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("load config: %w", err)
 	}
 
 	valutes, err := currency.ReadXML(cfg.InputFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("read xml: %w", err)
 	}
 
 	currency.SortByValueDesc(valutes)
 
-	return output.SaveJSON(cfg.OutputFile, valutes)
+	err = output.SaveJSON(cfg.OutputFile, valutes)
+	if err != nil {
+		return fmt.Errorf("save json: %w", err)
+	}
+
+	return nil
 }
 
 func main() {
